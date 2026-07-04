@@ -100,15 +100,23 @@ export default function PortfolioPage({ params }: { params: Promise<{ publicId: 
 
   const { fullName, age, hometown, campId, avatarUrl, qrCodeUrl, activities, certificates, projects, awards, season } = student;
 
+  // Inject noindex meta tag to block search engine crawling
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-violet-600/30 selection:text-violet-200">
-      {/* Dynamic SEO robots tag injection */}
-      <head>
-        <meta name="robots" content="noindex, nofollow" />
-      </head>
 
       {/* Decorative Orbs */}
       <div className="absolute top-0 left-0 w-[40%] h-[30%] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
+
       <div className="absolute top-[50%] right-0 w-[40%] h-[30%] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Banner / Header details */}

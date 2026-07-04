@@ -53,6 +53,17 @@ export default function PortfolioPage({ params }: { params: Promise<{ publicId: 
     loadPortfolio();
   }, [publicId]);
 
+  // Inject noindex meta tag (must be before any early returns per React Rules of Hooks)
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
   const copyCampId = () => {
     if (!student?.campId) return;
     navigator.clipboard.writeText(student.campId);
@@ -99,17 +110,6 @@ export default function PortfolioPage({ params }: { params: Promise<{ publicId: 
   }
 
   const { fullName, age, hometown, campId, avatarUrl, qrCodeUrl, activities, certificates, projects, awards, season } = student;
-
-  // Inject noindex meta tag to block search engine crawling
-  useEffect(() => {
-    const meta = document.createElement('meta');
-    meta.name = 'robots';
-    meta.content = 'noindex, nofollow';
-    document.head.appendChild(meta);
-    return () => {
-      document.head.removeChild(meta);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-violet-600/30 selection:text-violet-200">

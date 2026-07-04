@@ -32,15 +32,15 @@ async function main() {
   console.log(`Created organization: ${org.name} (${org.id})`);
 
   // 2. Create Admin User
-  // Password hash for 'admin123' generated with bcryptjs
-  const mockAdminHash = '$2a$10$WqB4Q6w.7f64Y7q0v8t7eO1J1V4QpQoX7V4S8eUv5V3R.oYh.O3d.'; // 'admin123' hash
+  // Correct bcrypt hash for 'admin123' (bcryptjs 10 rounds)
+  const adminPasswordHash = '$2b$10$qSy.MkySbbGX9xaqalT6/OtOsQvM6EHrwCNTZ0ys059FEmWTYxPly';
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@summercamp.com' },
-    update: {},
+    update: { passwordHash: adminPasswordHash },
     create: {
       email: 'admin@summercamp.com',
-      passwordHash: mockAdminHash,
+      passwordHash: adminPasswordHash,
       role: Role.OWNER,
       organizationId: org.id,
     },

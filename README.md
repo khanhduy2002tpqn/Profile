@@ -1,31 +1,52 @@
-# Summer Camp Digital Portfolio SaaS System
+# Summer Camp Digital Portfolio Unified System
 
-A premium, multi-tenant (SaaS) Digital Portfolio platform designed for Summer Camp organizations. Built with Next.js, NestJS, Tailwind CSS, Prisma, and PostgreSQL.
+A premium, multi-tenant (SaaS) Digital Portfolio platform designed for Summer Camp programs. This is a unified Next.js application containing both the frontend user interfaces and serverless backend API routes (Route Handlers). It is optimized for 1-click serverless deployment on **Vercel** and connects to **Supabase (PostgreSQL)**, **Cloudinary (Images)**, and **AWS S3 (Slides/PDFs)**.
 
-## 🚀 Quick Start Guide
+---
 
-### 1. Database Setup (Prisma & Supabase)
+## 🚀 Deployment Instructions
 
-Get a PostgreSQL connection string from your Supabase project (both Session/Transaction URL for pooled connections, and Direct URL for migrations).
+### 1. Frontend & Backend API Deployment (Vercel)
 
-1. Go to the `backend/` directory:
+1. Import your GitHub repository **`khanhduy2002tpqn/Profile`** on Vercel.
+2. In the project configuration:
+   * **Framework Preset:** `Next.js` (automatically detected).
+   * **Root Directory:** select **`frontend`**.
+3. Configure the following **Environment Variables** in Vercel Project Settings:
+   * `DATABASE_URL`: *Your Supabase PostgreSQL pooled database connection string* (e.g. `postgres://postgres.xxxx:...:6543/postgres?pgbouncer=true`).
+   * `JWT_SECRET`: *A secure random string* (used to sign CMS administrator session tokens).
+   * `FRONTEND_URL`: *Your deployed Vercel domain* (e.g., `https://profile-summercamp.vercel.app`).
+   * `CLOUDINARY_CLOUD_NAME`: *Cloudinary cloud identifier*.
+   * `CLOUDINARY_API_KEY`: *Cloudinary credentials API key*.
+   * `CLOUDINARY_API_SECRET`: *Cloudinary credentials API secret*.
+   * `AWS_S3_BUCKET`: *Your AWS S3 bucket name*.
+   * `AWS_ACCESS_KEY_ID`: *AWS credentials access key ID*.
+   * `AWS_SECRET_ACCESS_KEY`: *AWS credentials secret access key*.
+   * `AWS_REGION`: *AWS region of your bucket (e.g., `us-east-1`)*.
+4. Click **Deploy**. Vercel will automatically build and serve your public portfolio lookups and CMS endpoints.
+
+---
+
+## 💻 Local Development Setup
+
+To run the application locally on your machine:
+
+1. Navigate to the `frontend/` directory:
    ```bash
-   cd backend
+   cd frontend
    ```
-2. Create or configure your `backend/.env` file with the Supabase connection strings:
+2. Create a `.env` file with your database connection strings:
    ```env
-   # PostgreSQL connection urls
-   DATABASE_URL="postgres://postgres.xxxx:your-password@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10"
-   DIRECT_URL="postgres://postgres.xxxx:your-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+   # PostgreSQL connection string for Prisma
+   DATABASE_URL="postgres://postgres.xxxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
 
-   # JWT secret key for CMS admin auth
+   # JWT secret for token signatures
    JWT_SECRET="generate-a-secure-random-secret-key"
 
-   # Backend URL (used for local uploads relative paths)
-   BACKEND_URL="http://localhost:5000"
+   # Environment domain references
    FRONTEND_URL="http://localhost:3000"
 
-   # Optional Cloud Storage (Leave blank to use local fallback directory: /uploads)
+   # Optional Cloud Storage (Leave blank to use local fallback directory: public/uploads)
    CLOUDINARY_CLOUD_NAME=""
    CLOUDINARY_API_KEY=""
    CLOUDINARY_API_SECRET=""
@@ -34,69 +55,51 @@ Get a PostgreSQL connection string from your Supabase project (both Session/Tran
    AWS_SECRET_ACCESS_KEY=""
    AWS_REGION=""
    ```
-3. Run migrations to initialize the PostgreSQL schema:
+3. Generate the Prisma Client locally:
+   ```bash
+   npx prisma generate
+   ```
+4. Apply the migrations to setup tables:
    ```bash
    npx prisma migrate dev --name init
    ```
-4. Seed the database with the default tenant organization, active season, and administrator credentials:
+5. Seed the database with the default tenant organization (`summer-camp`), season (`SC2026`), and administrator credentials (`admin@summercamp.com` / `admin123`):
    ```bash
    npx prisma db seed
    ```
-   * **Default Admin Account:** `admin@summercamp.com`
-   * **Default Admin Password:** `admin123`
-
----
-
-### 2. Run the Development Servers
-
-#### Backend API (NestJS)
-Runs on [http://localhost:5000/api](http://localhost:5000/api)
-```bash
-cd backend
-npm run start:dev
-```
-
-#### Frontend Dashboard & Portfolio (Next.js)
-Runs on [http://localhost:3000](http://localhost:3000)
-```bash
-cd frontend
-npm run dev
-```
+6. Start the local Next.js development server on [http://localhost:3000](http://localhost:3000):
+   ```bash
+   npm run dev
+   ```
 
 ---
 
 ## 📂 Project Directory Structure
 
 ```
-├── backend/                  # NestJS REST API Backend
+├── frontend/                 # Next.js Serverless Project
 │   ├── prisma/
-│   │   ├── schema.prisma     # Prisma PostgreSQL Models
-│   │   └── seed.ts           # Seeding script (default admin, active season)
-│   ├── src/
-│   │   ├── auth/             # JWT, Guard & Decorators logic
-│   │   ├── season/           # Multi-season management CRUD
-│   │   ├── student/          # Student CRUD, Album, Cert, Projects, Awards
-│   │   ├── import/           # Bulk xlsx parsing & zip file extractor mapping
-│   │   ├── storage/          # Cloudinary/S3 Client upload with local disk fallback
-│   │   ├── prisma.service.ts
-│   │   └── main.ts           # Bootstrap (CORS, Static upload serving, prefix)
-│   └── uploads/              # Local storage fallback directory
-│
-├── frontend/                 # Next.js App Router Frontend
-│   ├── public/               # static assets (favicon, robots.txt disallows)
+│   │   ├── schema.prisma     # Prisma PostgreSQL schema
+│   │   ├── seed.ts           # DB Seeder script (organization, admin, seasons)
+│   │   └── tsconfig.json     # Isolated seeder compiler settings
+│   ├── public/               # Static assets & robots.txt Crawler exclusions
+│   │   └── uploads/          # Local uploads fallback directory
 │   └── src/
 │       ├── app/
 │       │   ├── page.tsx      # Public search page (CampID lookups)
-│       │   ├── p/[publicId]/ # Public Portfolio page (noindex, scrapbook, slide download)
-│       │   └── cms/
-│       │       ├── login/    # Admin portal login
-│       │       ├── layout.tsx# Sidebar, season picker Context wrapper
-│       │       ├── dashboard/# Dashboard reports & recharts distributions
-│       │       ├── students/ # CRUD list & detailed tabbed profile manager
-│       │       ├── seasons/  # Active season picker toggle and CRUD
-│       │       └── import/   # Real-time ZIP extraction validation terminal log
+│       │   ├── p/[publicId]/ # Public Portfolio viewer (scrapbook lightbox, projects)
+│       │   ├── api/          # Serverless Route Handlers
+│       │   │   ├── auth/     # CMS Login & Profile tokens
+│       │   │   ├── seasons/  # Season CRUD & Active public lookups
+│       │   │   ├── students/ # Student CRUD & Portfolio resource uploads
+│       │   │   ├── import/   # Bulk Excel sheet parser & ZIP extractor
+│       │   │   └── dashboard/# Stats metrics calculations
+│       │   └── cms/          # Admin Control Panel pages (Dashboard, CRUD list, Imports)
 │       └── lib/
-│           └── api.ts        # Custom fetch wrapper with authorization injection
+│           ├── api.ts        # Relative path fetch wrapper
+│           ├── auth.ts       # JWT header claims validator
+│           ├── prisma.ts     # Global PrismaClient instantiator with pg adapter
+│           └── storage.ts    # Cloudinary & S3 uploads manager
 ```
 
 ---
